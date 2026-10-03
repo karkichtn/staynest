@@ -22,7 +22,14 @@ export const createBooking = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Check-out must be at least one day after check-in');
   }
+
   // TODO: reject check-in dates in the past.
+  const today = new Date().toLocaleDateString('en-CA');
+
+  if (checkIn < today) {
+    res.status(400);
+    throw new Error('Check-in date cannot be in the past');
+  }
 
   if (guests > listing.maxGuests) {
     res.status(400);
@@ -61,7 +68,7 @@ export const getMyBookings = asyncHandler(async (req, res) => {
 // GET /api/bookings/host (bookings on my listings)
 export const getHostBookings = asyncHandler(async (req, res) => {
   const myListings = await Listing.find({ host: req.user._id }).select('_id');
-  const bookings = await Booking.find({ listing: { $in: myListings.map((l) => l._id) } })
+  const bookings = await Booking.find({ listing: { $in: myListings.map(l => l._id) } })
     .populate('listing', 'title city')
     .populate('guest', 'name email')
     .sort({ checkIn: 1 });

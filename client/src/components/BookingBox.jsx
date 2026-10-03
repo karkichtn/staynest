@@ -18,7 +18,7 @@ export default function BookingBox({ listing }) {
   // TODO: the date inputs allow past dates - set a `min` attribute (see issue tracker).
   const book = async (e) => {
     e.preventDefault();
-    if (!user) return navigate('/login', { state: { from: `/stays/${listing._id}` } });
+    if (!user) navigate('/login', { state: { from: `/stays/${listing._id}` } });
     setLoading(true);
     setError('');
     try {
@@ -44,23 +44,45 @@ export default function BookingBox({ listing }) {
       <div className="row">
         <label className="grow">
           Check-in
-          <input type="date" required value={form.checkIn} onChange={set('checkIn')} />
+          <input
+            type="date"
+            required
+            min={new Date().toLocaleDateString('en-CA')}
+            value={form.checkIn}
+            onChange={set('checkIn')}
+          />
         </label>
+
         <label className="grow">
           Check-out
-          <input type="date" required value={form.checkOut} onChange={set('checkOut')} />
+          <input
+            type="date"
+            required
+            min={
+              form.checkIn
+                ? new Date(new Date(form.checkIn).getTime() + 86400000)
+                    .toISOString()
+                    .split('T')[0]
+                : new Date().toLocaleDateString('en-CA')
+            }
+            value={form.checkOut}
+            onChange={set('checkOut')}
+          />
         </label>
       </div>
+
       <label>
         Guests
         <input type="number" min="1" max={listing.maxGuests} value={form.guests} onChange={set('guests')} />
       </label>
+
       {nights > 0 && (
         <div className="row-between">
           <span>{formatINR(listing.pricePerNight)} × {nights} night{nights > 1 ? 's' : ''}</span>
           <strong>{formatINR(total)}</strong>
         </div>
       )}
+
       {error && <p className="error">{error}</p>}
       <button className="btn full" disabled={loading}>
         {loading ? 'Booking...' : 'Reserve'}
